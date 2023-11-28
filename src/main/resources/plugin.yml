@@ -5,3 +5,7 @@ api-version: '1.20'
 authors: [karl-k-m]
 description: A Paper plugin for piping HTML5Chat messages into Minecraft chat.
 website: https://github.com/karl-k-m
+commands:
+  html5:
+    description: Toggle html5chat integration on and off.
+    usage: /html5
