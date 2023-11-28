@@ -9,3 +9,6 @@ commands:
   html5:
     description: Toggle html5chat integration on and off.
     usage: /html5
+  html5toggle:
+    description: Toggle html5chat integration on and off.
+    usage: /html5toggle

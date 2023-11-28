@@ -1,17 +1,19 @@
 package com.github.karlkm.network;
 
-import com.github.karlkm.dataobjects.MessageCircularBuffer;
 import com.github.karlkm.dataobjects.MessageObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.logging.Logger;
 
 public class ChatReader {
@@ -24,6 +26,11 @@ public class ChatReader {
         this.logger = logger;
 
         MessageObject[] last10 = getLast10Messages();
+        for (MessageObject m : last10) {
+            if (m != null) {
+                messageBuffer.add(m);
+            }
+        }
     }
 
     public String requestJson() {
@@ -32,9 +39,10 @@ public class ChatReader {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connection.setDoOutput(true);
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
 
             String data = "a=getChatMessages&maxChats=10&roomid=" + roomId;
-
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = data.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
@@ -42,19 +50,22 @@ public class ChatReader {
 
             StringBuilder response = new StringBuilder();
             try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-                String responseLine = null;
+                String responseLine;
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
             }
 
             return response.toString();
-        } catch (Exception e) {
-            logger.severe("Error accessing HTML5-Chat: " + e.getMessage());
+        } catch (MalformedURLException e) {
+            logger.severe("Malformed URL: " + e.getMessage());
+        } catch (IOException e) {
+            logger.severe("I/O error: " + e.getMessage());
         }
 
         return null;
     }
+
 
     public MessageObject[] parseJson(String json) {
         MessageObject[] out = new MessageObject[10];
@@ -81,15 +92,18 @@ public class ChatReader {
 
         ArrayList<MessageObject> out = new ArrayList<>();
 
-        for (MessageObject i : last10) {
-            if (!messageBuffer.contains(i)) {
-                messageBuffer.add(i);
-                out.add(i);
+        // Add new messages to buffer and out
+
+        for (MessageObject m : last10) {
+            if (m != null && !messageBuffer.contains(m)) {
+                messageBuffer.add(m);
+                out.add(m);
             }
         }
 
-        logger.warning("Logged " + out.size() + " new messages.");
+        logger.fine("Logged " + out.size() + " new messages.");
 
+        Collections.reverse(out);
         return out;
     }
 

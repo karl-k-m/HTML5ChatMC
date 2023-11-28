@@ -19,14 +19,28 @@ public class MessageServeService {
     private final Set<UUID> subscribedPlayers;
     private final int roomId;
     private ChatReader reader;
+    private boolean isFeatureEnabled;
 
-    public MessageServeService(JavaPlugin plugin) {
+    public MessageServeService(JavaPlugin plugin, boolean isFeatureEnabled) {
         this.plugin = plugin;
         this.roomId = 54654;
         this.subscribedPlayers = new HashSet<>();
         this.reader = new ChatReader(roomId, plugin.getLogger());
+        this.isFeatureEnabled = isFeatureEnabled;
 
-        startMessageTask();
+        if (isFeatureEnabled) {
+            startMessageTask();
+        }
+    }
+
+    public void toggleFeature() {
+        isFeatureEnabled = !isFeatureEnabled;
+        if (isFeatureEnabled) {
+            startMessageTask();
+        }
+        if (!isFeatureEnabled) {
+            subscribedPlayers.clear();
+        }
     }
 
     public void startMessageTask() {
@@ -34,6 +48,9 @@ public class MessageServeService {
     }
 
     private void sendMessageToPlayers() {
+        if (!isFeatureEnabled) {
+            return;
+        }
         ArrayList<MessageObject> messages = reader.getNewMessages();
         for (UUID playerId : subscribedPlayers) {
             Player player = Bukkit.getPlayer(playerId);
@@ -46,15 +63,25 @@ public class MessageServeService {
     }
 
     public void togglePlayerSubscription(Player player) {
+        if (!isFeatureEnabled) {
+            player.sendMessage(Component.text("HTML5Chat is not enabled. (/html5toggle to toggle)", TextColor.color(255, 0, 0))
+                    .decoration(TextDecoration.BOLD, true));
+            return;
+        }
+
         UUID playerId = player.getUniqueId();
         if (subscribedPlayers.contains(playerId)) {
             subscribedPlayers.remove(playerId);
-            player.sendMessage(Component.text("HTML5Chat Disabled.", TextColor.color(152, 2, 72))
+            player.sendMessage(Component.text("HTML5-Chat is now hidden.", TextColor.color(152, 2, 72))
                     .decoration(TextDecoration.BOLD, true));
         } else {
             subscribedPlayers.add(playerId);
-            player.sendMessage(Component.text("HTML5Chat Enabled.", TextColor.color(152, 2, 72))
+            player.sendMessage(Component.text("Now displaying HTML5-Chat.", TextColor.color(152, 2, 72))
                     .decoration(TextDecoration.BOLD, true));
         }
+    }
+
+    public boolean isFeatureEnabled() {
+        return isFeatureEnabled;
     }
 }
