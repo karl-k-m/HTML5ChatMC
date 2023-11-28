@@ -23,7 +23,7 @@ public class MessageServeService {
 
     public MessageServeService(JavaPlugin plugin, boolean isFeatureEnabled) {
         this.plugin = plugin;
-        this.roomId = 54654;
+        this.roomId = 1;
         this.subscribedPlayers = new HashSet<>();
         this.reader = new ChatReader(roomId, plugin.getLogger());
         this.isFeatureEnabled = isFeatureEnabled;
