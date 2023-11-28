@@ -1,0 +1,7 @@
+name: HTML5ChatMC
+version: '${version}'
+main: com.github.karlkm.html5chatmc.HTML5ChatMC
+api-version: '1.20'
+authors: [karl-k-m]
+description: A Paper plugin for piping HTML5Chat messages into Minecraft chat.
+website: https://github.com/karl-k-m
